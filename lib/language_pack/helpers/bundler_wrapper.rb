@@ -73,7 +73,7 @@ class LanguagePack::Helpers::BundlerWrapper
     @fetcher              = options[:fetcher]      || LanguagePack::Fetcher.new("https://github.com/rubygems/") # coupling
     @gemfile_path         = options[:gemfile_path] || Pathname.new("./Gemfile")
     @gemfile_lock_path    = Pathname.new("#{@gemfile_path}.lock")
-    @version              = @gemfile_lock_path.read(mode: "rt").match(BUNDLED_WITH_REGEX)
+    @version              = @gemfile_lock_path.read(mode: "rt").match(BUNDLED_WITH_REGEX)[:version]
 
     @bundler_path         = options[:bundler_path] || @bundler_tmp.join(dir_name)
     @bundler_tar          = options[:bundler_tar]  || "bundler/archive/v#{version}.tar.gz"
