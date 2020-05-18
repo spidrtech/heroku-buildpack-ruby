@@ -38,7 +38,7 @@ class LanguagePack::Helpers::BundlerWrapper
   BLESSED_BUNDLER_VERSIONS = {}
   BLESSED_BUNDLER_VERSIONS["1"] = "1.17.3"
   BLESSED_BUNDLER_VERSIONS["2"] = "2.1.4"
-  BUNDLED_WITH_REGEX = /^BUNDLED WITH$(\r?\n)   (?<major>\d+)\.\d+\.\d+/m
+  BUNDLED_WITH_REGEX = /^BUNDLED WITH$(\r?\n)   (?<version>(?<major>\d+)\.\d+\.\d+)/m
 
   class GemfileParseError < BuildpackError
     def initialize(error)
@@ -73,7 +73,7 @@ class LanguagePack::Helpers::BundlerWrapper
     @fetcher              = options[:fetcher]      || LanguagePack::Fetcher.new("https://github.com/rubygems/") # coupling
     @gemfile_path         = options[:gemfile_path] || Pathname.new("./Gemfile")
     @gemfile_lock_path    = Pathname.new("#{@gemfile_path}.lock")
-    detect_bundler_version_and_dir_name!
+    @version              = @gemfile_lock_path.read(mode: "rt").match(BUNDLED_WITH_REGEX)
 
     @bundler_path         = options[:bundler_path] || @bundler_tmp.join(dir_name)
     @bundler_tar          = options[:bundler_tar]  || "bundler/archive/v#{version}.tar.gz"
@@ -167,7 +167,6 @@ class LanguagePack::Helpers::BundlerWrapper
       return true if Dir.exists?(bundler_path)
 
       topic("Installing bundler #{@version}")
-      bundler_version_escape_valve!
 
       FileUtils.mkdir_p(bundler_path)
       Dir.chdir(bundler_path) do
@@ -184,34 +183,4 @@ class LanguagePack::Helpers::BundlerWrapper
     end
   end
 
-  def major_bundler_version
-    # https://rubular.com/r/jt9yj0aY7fU3hD
-    bundler_version_match = @gemfile_lock_path.read(mode: "rt").match(BUNDLED_WITH_REGEX)
-
-    if bundler_version_match
-      bundler_version_match[:major]
-    else
-      "1"
-    end
-  end
-
-  # You cannot use Bundler 2.x with a Gemfile.lock that points to a 1.x bundler
-  # version. The solution here is to read in the value set in the Gemfile.lock
-  # and download the "blessed" version with the same major version.
-  def detect_bundler_version_and_dir_name!
-    major = major_bundler_version
-    if BLESSED_BUNDLER_VERSIONS.key?(major)
-      @version = BLESSED_BUNDLER_VERSIONS[major]
-    else
-      raise UnsupportedBundlerVersion.new(BLESSED_BUNDLER_VERSIONS, major)
-    end
-  end
-
-  def bundler_version_escape_valve!
-    topic("Removing BUNDLED WITH version in the Gemfile.lock")
-    contents = File.read("Gemfile.lock")
-    File.open("Gemfile.lock", "w") do |f|
-      f.write contents.sub(/^BUNDLED WITH$(\r?\n)   (?<major>\d+)\.\d+\.\d+/m, '')
-    end
-  end
 end
