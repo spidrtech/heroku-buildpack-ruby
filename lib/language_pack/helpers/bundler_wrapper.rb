@@ -48,24 +48,6 @@ class LanguagePack::Helpers::BundlerWrapper
     end
   end
 
-  class UnsupportedBundlerVersion < BuildpackError
-    def initialize(version_hash, major)
-      msg = String.new("Your Gemfile.lock indicates you need bundler `#{major}.x`\n")
-      msg << "which is not currently supported. You can deploy with bundler version:\n"
-      version_hash.keys.each do |v|
-        msg << "  - `#{v}.x`\n"
-      end
-      msg << "\nTo use another version of bundler, update your `Gemfile.lock` to point\n"
-      msg << "to a supported version. For example:\n"
-      msg << "\n"
-      msg << "```\n"
-      msg << "BUNDLED WITH\n"
-      msg << "   #{version_hash["1"]}\n"
-      msg << "```\n"
-      super msg
-    end
-  end
-
   attr_reader :bundler_path
 
   def initialize(options = {})
@@ -85,7 +67,7 @@ class LanguagePack::Helpers::BundlerWrapper
     ENV['BUNDLE_GEMFILE'] = @gemfile_path.to_s
 
     fetch_bundler
-    $LOAD_PATH << @path
+    $LOAD_PATH.unshift @path
     require "bundler"
     self
   end
