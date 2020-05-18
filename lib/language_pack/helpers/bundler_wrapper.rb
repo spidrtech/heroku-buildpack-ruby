@@ -67,7 +67,7 @@ class LanguagePack::Helpers::BundlerWrapper
     ENV['BUNDLE_GEMFILE'] = @gemfile_path.to_s
 
     fetch_bundler
-    $LOAD_PATH.unshift @path
+    $LOAD_PATH << @path
     require "bundler"
     self
   end
