@@ -70,13 +70,13 @@ class LanguagePack::Helpers::BundlerWrapper
 
   def initialize(options = {})
     @bundler_tmp          = Pathname.new(Dir.mktmpdir)
-    @fetcher              = options[:fetcher]      || LanguagePack::Fetcher.new(LanguagePack::Base::VENDOR_URL) # coupling
+    @fetcher              = options[:fetcher]      || LanguagePack::Fetcher.new("https://github.com/rubygems/") # coupling
     @gemfile_path         = options[:gemfile_path] || Pathname.new("./Gemfile")
     @gemfile_lock_path    = Pathname.new("#{@gemfile_path}.lock")
     detect_bundler_version_and_dir_name!
 
     @bundler_path         = options[:bundler_path] || @bundler_tmp.join(dir_name)
-    @bundler_tar          = options[:bundler_tar]  || "bundler/#{dir_name}.tgz"
+    @bundler_tar          = options[:bundler_tar]  || "bundler/archive/#{version}.tar.gz"
     @orig_bundle_gemfile  = ENV['BUNDLE_GEMFILE']
     @path                 = Pathname.new("#{@bundler_path}/gems/#{dir_name}/lib")
   end
